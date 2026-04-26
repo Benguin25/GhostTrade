@@ -175,6 +175,14 @@ def sell_stock(req: TradeRequest, user=Depends(get_current_user)):
     return {"symbol": symbol, "shares": shares, "price": price, "total": total, "cash": new_cash}
 
 
+@router.post("/reset")
+def reset_portfolio(user=Depends(get_current_user)):
+    user_id = str(user.id)
+    supabase.table("portfolio").upsert({"user_id": user_id, "cash_balance": 100000}).execute()
+    supabase.table("positions").delete().eq("user_id", user_id).execute()
+    return {"cash": 100000}
+
+
 @router.get("/trades")
 def get_trades(user=Depends(get_current_user)):
     user_id = str(user.id)

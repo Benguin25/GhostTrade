@@ -4,9 +4,12 @@ import { api } from './lib/api'
 import AuthPage from './components/AuthPage'
 import WatchlistPanel from './components/WatchlistPanel'
 import PortfolioView from './components/PortfolioView'
+import DiscoverView from './components/DiscoverView'
 import StockChart from './components/StockChart'
 import SearchBar from './components/SearchBar'
 import TradePanel from './components/TradePanel'
+
+const TABS = ['watchlist', 'portfolio', 'discover']
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -23,6 +26,7 @@ export default function App() {
 
   const [selected, setSelected] = useState(null)
 
+  // ── auth ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -34,6 +38,7 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // ── data loaders ──────────────────────────────────────────────────────────
   const loadWatchlist = useCallback(async (token) => {
     setWatchlistLoading(true)
     try {
@@ -75,13 +80,13 @@ export default function App() {
     }
   }, [session, loadWatchlist, loadPortfolio])
 
+  // ── actions ───────────────────────────────────────────────────────────────
   const handleSearch = async (symbol) => {
     setSearchError('')
     const token = session?.access_token
     try {
       const existing = watchlist.find(s => s.symbol === symbol)
       if (existing) { setSelected(existing); return }
-
       const data = await api.addSymbol(symbol, token)
       setWatchlist(prev => {
         const exists = prev.find(s => s.symbol === data.symbol)
@@ -126,16 +131,15 @@ export default function App() {
     }
   }
 
-  const handleSelectFromPortfolio = useCallback(async (symbol) => {
+  // Fetch full stock data (with chart history) by symbol — used by Discover + Portfolio
+  const handleSelectSymbol = useCallback(async (symbol) => {
     const token = session?.access_token
     try {
       const data = await api.getStock(symbol, token)
       setSelected(data)
     } catch {
       const pos = portfolio?.positions?.find(p => p.symbol === symbol)
-      if (pos) {
-        setSelected({ symbol: pos.symbol, price: pos.current_price, change_pct: pos.gain_loss_pct, history: [] })
-      }
+      if (pos) setSelected({ symbol: pos.symbol, price: pos.current_price, change_pct: pos.gain_loss_pct, history: [] })
     }
   }, [session, portfolio])
 
@@ -152,10 +156,11 @@ export default function App() {
     setTrades([])
   }
 
+  // ── render ────────────────────────────────────────────────────────────────
   if (authLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#0d1117', color: '#8b949e', fontSize: '14px' }}>
-        Loading...
+        Loading…
       </div>
     )
   }
@@ -168,42 +173,50 @@ export default function App() {
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#0d1117' }}>
+      {/* ── Header ── */}
       <header style={{
-        padding: '12px 24px',
+        padding: '0 24px',
+        height: '52px',
         borderBottom: '1px solid #21262d',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
+        gap: '20px',
         backgroundColor: '#161b22',
         flexShrink: 0,
       }}>
-        <h1 style={{ color: '#58a6ff', fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
+        <h1 style={{ color: '#58a6ff', fontSize: '17px', fontWeight: 700, letterSpacing: '-0.4px', whiteSpace: 'nowrap' }}>
           Ghost Trade
         </h1>
 
         {/* Tab nav */}
         <nav style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
-          {['watchlist', 'portfolio'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '5px 14px',
-                backgroundColor: activeTab === tab ? '#21262d' : 'transparent',
-                border: activeTab === tab ? '1px solid #30363d' : '1px solid transparent',
-                borderRadius: '6px',
-                color: activeTab === tab ? '#e6edf3' : '#8b949e',
-                fontSize: '13px',
-                fontWeight: activeTab === tab ? 600 : 400,
-                cursor: 'pointer',
-                textTransform: 'capitalize',
-                transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
-              }}
-            >
-              {tab}
-            </button>
-          ))}
+          {TABS.map(tab => {
+            const active = activeTab === tab
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '5px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid',
+                  borderColor: active ? '#30363d' : 'transparent',
+                  backgroundColor: active ? '#21262d' : 'transparent',
+                  color: active ? '#e6edf3' : '#8b949e',
+                  fontSize: '13px',
+                  fontWeight: active ? 600 : 400,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#e6edf3' }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.color = '#8b949e' }}
+              >
+                {tab}
+              </button>
+            )
+          })}
         </nav>
 
         <SearchBar onSearch={handleSearch} error={searchError} onClearError={() => setSearchError('')} />
@@ -222,16 +235,18 @@ export default function App() {
             whiteSpace: 'nowrap',
             transition: 'border-color 0.15s, color 0.15s',
           }}
-          onMouseEnter={e => { e.target.style.borderColor = '#f85149'; e.target.style.color = '#f85149' }}
-          onMouseLeave={e => { e.target.style.borderColor = '#30363d'; e.target.style.color = '#8b949e' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#f85149'; e.currentTarget.style.color = '#f85149' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = '#30363d'; e.currentTarget.style.color = '#8b949e' }}
         >
           Log out
         </button>
       </header>
 
+      {/* ── Body ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left panel */}
-        {activeTab === 'watchlist' ? (
+
+        {/* Left panel — switches with active tab */}
+        {activeTab === 'watchlist' && (
           <WatchlistPanel
             stocks={sortedWatchlist}
             selected={selected}
@@ -240,18 +255,29 @@ export default function App() {
             onRemove={handleRemove}
             onToggleStar={handleToggleStar}
           />
-        ) : (
+        )}
+        {activeTab === 'portfolio' && (
           <PortfolioView
             portfolio={portfolio}
             trades={trades}
             loading={portfolioLoading}
             selected={selected}
-            onSelectSymbol={handleSelectFromPortfolio}
+            onSelectSymbol={handleSelectSymbol}
+            token={session?.access_token}
+            onPortfolioChange={() => loadPortfolio(session?.access_token)}
+          />
+        )}
+        {activeTab === 'discover' && (
+          <DiscoverView
+            watchlist={watchlist}
+            selected={selected}
+            onSelectSymbol={handleSelectSymbol}
+            onAddToWatchlist={handleSearch}
           />
         )}
 
         {/* Right panel: chart + trade panel */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
           <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
             <StockChart stock={selected} />
           </div>

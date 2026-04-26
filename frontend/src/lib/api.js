@@ -22,4 +22,5 @@ export const api = {
   sellStock: (symbol, shares, token) =>
     request('/portfolio/sell', { method: 'POST', body: JSON.stringify({ symbol, shares }) }, token),
   getTrades: (token) => request('/portfolio/trades', {}, token),
+  resetPortfolio: (token) => request('/portfolio/reset', { method: 'POST' }, token),
 }
