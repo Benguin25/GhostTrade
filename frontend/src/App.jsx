@@ -3,18 +3,26 @@ import { supabase } from './lib/supabase'
 import { api } from './lib/api'
 import AuthPage from './components/AuthPage'
 import WatchlistPanel from './components/WatchlistPanel'
+import PortfolioView from './components/PortfolioView'
 import StockChart from './components/StockChart'
 import SearchBar from './components/SearchBar'
+import TradePanel from './components/TradePanel'
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('watchlist')
+
   const [watchlist, setWatchlist] = useState([])
-  const [selected, setSelected] = useState(null)
   const [watchlistLoading, setWatchlistLoading] = useState(false)
   const [searchError, setSearchError] = useState('')
 
-  // Track auth state from Supabase (persisted in localStorage automatically)
+  const [portfolio, setPortfolio] = useState(null)
+  const [trades, setTrades] = useState([])
+  const [portfolioLoading, setPortfolioLoading] = useState(false)
+
+  const [selected, setSelected] = useState(null)
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -33,25 +41,43 @@ export default function App() {
       setWatchlist(data)
       if (data.length > 0) setSelected(prev => prev ?? data[0])
     } catch {
-      // leave watchlist empty on error
+      // leave empty on error
     } finally {
       setWatchlistLoading(false)
+    }
+  }, [])
+
+  const loadPortfolio = useCallback(async (token) => {
+    setPortfolioLoading(true)
+    try {
+      const [portData, tradesData] = await Promise.all([
+        api.getPortfolio(token),
+        api.getTrades(token),
+      ])
+      setPortfolio(portData)
+      setTrades(tradesData)
+    } catch {
+      // leave empty on error
+    } finally {
+      setPortfolioLoading(false)
     }
   }, [])
 
   useEffect(() => {
     if (session?.access_token) {
       loadWatchlist(session.access_token)
+      loadPortfolio(session.access_token)
     } else {
       setWatchlist([])
       setSelected(null)
+      setPortfolio(null)
+      setTrades([])
     }
-  }, [session, loadWatchlist])
+  }, [session, loadWatchlist, loadPortfolio])
 
   const handleSearch = async (symbol) => {
     setSearchError('')
     const token = session?.access_token
-    // Optimistic: fetch stock data then POST to persist
     try {
       const existing = watchlist.find(s => s.symbol === symbol)
       if (existing) { setSelected(existing); return }
@@ -74,7 +100,6 @@ export default function App() {
 
   const handleRemove = async (symbol) => {
     const token = session?.access_token
-    // Optimistic remove
     const prev = watchlist
     setWatchlist(list => list.filter(s => s.symbol !== symbol))
     if (selected?.symbol === symbol) {
@@ -84,13 +109,12 @@ export default function App() {
     try {
       await api.removeSymbol(symbol, token)
     } catch {
-      setWatchlist(prev) // revert
+      setWatchlist(prev)
     }
   }
 
   const handleToggleStar = async (symbol) => {
     const token = session?.access_token
-    // Optimistic toggle
     const prev = watchlist
     setWatchlist(list =>
       list.map(s => s.symbol === symbol ? { ...s, starred: !s.starred } : s)
@@ -98,14 +122,34 @@ export default function App() {
     try {
       await api.toggleStar(symbol, token)
     } catch {
-      setWatchlist(prev) // revert
+      setWatchlist(prev)
     }
   }
+
+  const handleSelectFromPortfolio = useCallback(async (symbol) => {
+    const token = session?.access_token
+    try {
+      const data = await api.getStock(symbol, token)
+      setSelected(data)
+    } catch {
+      const pos = portfolio?.positions?.find(p => p.symbol === symbol)
+      if (pos) {
+        setSelected({ symbol: pos.symbol, price: pos.current_price, change_pct: pos.gain_loss_pct, history: [] })
+      }
+    }
+  }, [session, portfolio])
+
+  const handleTrade = useCallback(async () => {
+    const token = session?.access_token
+    if (token) await loadPortfolio(token)
+  }, [session, loadPortfolio])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setWatchlist([])
     setSelected(null)
+    setPortfolio(null)
+    setTrades([])
   }
 
   if (authLoading) {
@@ -118,7 +162,6 @@ export default function App() {
 
   if (!session) return <AuthPage />
 
-  // Sort: starred first, then by original order
   const sortedWatchlist = [
     ...watchlist.filter(s => s.starred),
     ...watchlist.filter(s => !s.starred),
@@ -131,14 +174,40 @@ export default function App() {
         borderBottom: '1px solid #21262d',
         display: 'flex',
         alignItems: 'center',
-        gap: '20px',
+        gap: '16px',
         backgroundColor: '#161b22',
         flexShrink: 0,
       }}>
         <h1 style={{ color: '#58a6ff', fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
           Ghost Trade
         </h1>
+
+        {/* Tab nav */}
+        <nav style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+          {['watchlist', 'portfolio'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '5px 14px',
+                backgroundColor: activeTab === tab ? '#21262d' : 'transparent',
+                border: activeTab === tab ? '1px solid #30363d' : '1px solid transparent',
+                borderRadius: '6px',
+                color: activeTab === tab ? '#e6edf3' : '#8b949e',
+                fontSize: '13px',
+                fontWeight: activeTab === tab ? 600 : 400,
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+                transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+
         <SearchBar onSearch={handleSearch} error={searchError} onClearError={() => setSearchError('')} />
+
         <button
           onClick={handleLogout}
           style={{
@@ -159,16 +228,42 @@ export default function App() {
           Log out
         </button>
       </header>
+
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <WatchlistPanel
-          stocks={sortedWatchlist}
-          selected={selected}
-          onSelect={setSelected}
-          loading={watchlistLoading}
-          onRemove={handleRemove}
-          onToggleStar={handleToggleStar}
-        />
-        <StockChart stock={selected} />
+        {/* Left panel */}
+        {activeTab === 'watchlist' ? (
+          <WatchlistPanel
+            stocks={sortedWatchlist}
+            selected={selected}
+            onSelect={setSelected}
+            loading={watchlistLoading}
+            onRemove={handleRemove}
+            onToggleStar={handleToggleStar}
+          />
+        ) : (
+          <PortfolioView
+            portfolio={portfolio}
+            trades={trades}
+            loading={portfolioLoading}
+            selected={selected}
+            onSelectSymbol={handleSelectFromPortfolio}
+          />
+        )}
+
+        {/* Right panel: chart + trade panel */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+            <StockChart stock={selected} />
+          </div>
+          {selected && (
+            <TradePanel
+              stock={selected}
+              portfolio={portfolio}
+              token={session?.access_token}
+              onTrade={handleTrade}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

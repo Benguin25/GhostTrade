@@ -16,4 +16,10 @@ export const api = {
   removeSymbol: (symbol, token) => request(`/watchlist/${symbol}`, { method: 'DELETE' }, token),
   toggleStar: (symbol, token) => request(`/watchlist/${symbol}/star`, { method: 'PATCH' }, token),
   getStock: (symbol, token) => request(`/stocks/${symbol}`, {}, token),
+  getPortfolio: (token) => request('/portfolio', {}, token),
+  buyStock: (symbol, shares, token) =>
+    request('/portfolio/buy', { method: 'POST', body: JSON.stringify({ symbol, shares }) }, token),
+  sellStock: (symbol, shares, token) =>
+    request('/portfolio/sell', { method: 'POST', body: JSON.stringify({ symbol, shares }) }, token),
+  getTrades: (token) => request('/portfolio/trades', {}, token),
 }
