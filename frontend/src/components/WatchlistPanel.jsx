@@ -1,4 +1,4 @@
-export default function WatchlistPanel({ stocks, selected, onSelect, loading }) {
+export default function WatchlistPanel({ stocks, selected, onSelect, loading, onRemove, onToggleStar }) {
   return (
     <aside style={{
       width: '260px',
@@ -19,7 +19,7 @@ export default function WatchlistPanel({ stocks, selected, onSelect, loading }) 
         </div>
       ) : stocks.length === 0 ? (
         <div style={{ padding: '32px 16px', color: '#8b949e', fontSize: '14px', textAlign: 'center' }}>
-          No stocks yet
+          No stocks yet — search to add one
         </div>
       ) : (
         stocks.map(stock => {
@@ -30,7 +30,7 @@ export default function WatchlistPanel({ stocks, selected, onSelect, loading }) 
               key={stock.symbol}
               onClick={() => onSelect(stock)}
               style={{
-                padding: '13px 16px',
+                padding: '11px 12px 11px 14px',
                 cursor: 'pointer',
                 borderBottom: '1px solid #21262d',
                 backgroundColor: isSelected ? '#1f2937' : 'transparent',
@@ -41,21 +41,61 @@ export default function WatchlistPanel({ stocks, selected, onSelect, loading }) 
               onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 600, fontSize: '14px', color: '#e6edf3' }}>
-                  {stock.symbol}
-                </span>
-                <span style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: isPositive ? '#3fb950' : '#f85149',
-                  backgroundColor: isPositive ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                }}>
-                  {isPositive ? '+' : ''}{stock.change_pct.toFixed(2)}%
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                  {/* Star toggle */}
+                  <button
+                    title={stock.starred ? 'Unstar' : 'Star'}
+                    onClick={e => { e.stopPropagation(); onToggleStar(stock.symbol) }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '1px 2px',
+                      color: stock.starred ? '#e3b341' : '#484f58',
+                      fontSize: '14px',
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {stock.starred ? '★' : '☆'}
+                  </button>
+                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#e6edf3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {stock.symbol}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  <span style={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: isPositive ? '#3fb950' : '#f85149',
+                    backgroundColor: isPositive ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                  }}>
+                    {isPositive ? '+' : ''}{stock.change_pct.toFixed(2)}%
+                  </span>
+                  {/* Remove button */}
+                  <button
+                    title="Remove"
+                    onClick={e => { e.stopPropagation(); onRemove(stock.symbol) }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '1px 3px',
+                      color: '#484f58',
+                      fontSize: '16px',
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={e => (e.target.style.color = '#f85149')}
+                    onMouseLeave={e => (e.target.style.color = '#484f58')}
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
-              <div style={{ marginTop: '4px', color: '#8b949e', fontSize: '13px' }}>
+              <div style={{ marginTop: '4px', color: '#8b949e', fontSize: '13px', paddingLeft: '22px' }}>
                 ${stock.price.toFixed(2)}
               </div>
             </div>
