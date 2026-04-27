@@ -137,17 +137,22 @@ export default function App() {
         borderBottom: '1px solid #21262d',
         display: 'flex',
         alignItems: 'center',
-        gap: '20px',
+        gap: '16px',
         backgroundColor: '#161b22',
         flexShrink: 0,
       }}>
-        <h1 style={{ color: '#58a6ff', fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
-          Ghost Trade
-        </h1>
-        {activePage === 'Watchlist' && (
-          <SearchBar onSearch={handleSearch} error={searchError} onClearError={() => setSearchError('')} />
-        )}
-        <div style={{ marginLeft: activePage === 'Watchlist' ? '0' : 'auto', display: 'flex', gap: '2px', backgroundColor: '#0d1117', borderRadius: '7px', padding: '3px', border: '1px solid #21262d', flexShrink: 0 }}>
+        {/* Left: logo + search */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0 }}>
+          <h1 style={{ color: '#58a6ff', fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            Ghost Trade
+          </h1>
+          {activePage === 'Watchlist' && (
+            <SearchBar onSearch={handleSearch} error={searchError} onClearError={() => setSearchError('')} />
+          )}
+        </div>
+
+        {/* Center: nav tabs */}
+        <div style={{ display: 'flex', gap: '2px', backgroundColor: '#0d1117', borderRadius: '7px', padding: '3px', border: '1px solid #21262d', flexShrink: 0 }}>
           {NAV_TABS.map(tab => (
             <button
               key={tab}
@@ -171,24 +176,27 @@ export default function App() {
             </button>
           ))}
         </div>
-        <button
-          onClick={handleLogout}
-          style={{
-            marginLeft: activePage === 'Watchlist' ? 'auto' : '0',
-            padding: '6px 14px',
-            backgroundColor: 'transparent',
-            border: '1px solid #30363d',
-            borderRadius: '6px',
-            color: '#8b949e',
-            fontSize: '13px',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-          onMouseEnter={e => { e.target.style.borderColor = '#f85149'; e.target.style.color = '#f85149' }}
-          onMouseLeave={e => { e.target.style.borderColor = '#30363d'; e.target.style.color = '#8b949e' }}
-        >
-          Log out
-        </button>
+
+        {/* Right: logout */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: 'transparent',
+              border: '1px solid #30363d',
+              borderRadius: '6px',
+              color: '#8b949e',
+              fontSize: '13px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => { e.target.style.borderColor = '#f85149'; e.target.style.color = '#f85149' }}
+            onMouseLeave={e => { e.target.style.borderColor = '#30363d'; e.target.style.color = '#8b949e' }}
+          >
+            Log out
+          </button>
+        </div>
       </header>
 
       {/* Page content */}
@@ -203,7 +211,7 @@ export default function App() {
               onRemove={handleRemove}
               onToggleStar={handleToggleStar}
             />
-            <StockChart stock={selected} />
+            <StockChart stock={selected} session={session} />
           </>
         )}
         {activePage === 'Discover' && (

@@ -164,7 +164,7 @@ export default function DiscoverPage({ session, watchlist, onAddToWatchlist }) {
           Loading chart...
         </main>
       ) : (
-        <StockChart stock={selectedFull} />
+        <StockChart stock={selectedFull} session={session} />
       )}
     </div>
   )
