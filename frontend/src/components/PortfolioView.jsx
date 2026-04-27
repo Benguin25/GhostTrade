@@ -26,6 +26,7 @@ export default function PortfolioView({ portfolio, trades, loading, selected, on
   const [historyOpen, setHistoryOpen] = useState(false)
   const [resetConfirm, setResetConfirm] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [resetError, setResetError] = useState('')
 
   const cash = portfolio?.cash ?? 0
   const positions = portfolio?.positions ?? []
@@ -37,12 +38,13 @@ export default function PortfolioView({ portfolio, trades, loading, selected, on
 
   const handleReset = async () => {
     setResetting(true)
+    setResetError('')
     try {
       await api.resetPortfolio(token)
       setResetConfirm(false)
       await onPortfolioChange()
-    } catch {
-      // silently fail
+    } catch (err) {
+      setResetError(err.message || 'Reset failed')
     } finally {
       setResetting(false)
     }
@@ -106,6 +108,11 @@ export default function PortfolioView({ portfolio, trades, loading, selected, on
                 {resetting ? 'Resetting…' : 'Confirm'}
               </button>
             </div>
+          )}
+          {resetError && (
+            <span style={{ fontSize: '11px', color: '#f85149', marginTop: '4px', display: 'block' }}>
+              {resetError}
+            </span>
           )}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
