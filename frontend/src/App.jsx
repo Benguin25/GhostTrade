@@ -5,6 +5,10 @@ import AuthPage from './components/AuthPage'
 import WatchlistPanel from './components/WatchlistPanel'
 import StockChart from './components/StockChart'
 import SearchBar from './components/SearchBar'
+import DiscoverPage from './pages/DiscoverPage'
+import PortfolioPage from './pages/PortfolioPage'
+
+const NAV_TABS = ['Watchlist', 'Discover', 'Portfolio']
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -13,8 +17,8 @@ export default function App() {
   const [selected, setSelected] = useState(null)
   const [watchlistLoading, setWatchlistLoading] = useState(false)
   const [searchError, setSearchError] = useState('')
+  const [activePage, setActivePage] = useState('Watchlist')
 
-  // Track auth state from Supabase (persisted in localStorage automatically)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -48,14 +52,11 @@ export default function App() {
     }
   }, [session, loadWatchlist])
 
-  const handleSearch = async (symbol) => {
-    setSearchError('')
+  const handleAddToWatchlist = async (symbol) => {
     const token = session?.access_token
-    // Optimistic: fetch stock data then POST to persist
+    const existing = watchlist.find(s => s.symbol === symbol)
+    if (existing) { setSelected(existing); setActivePage('Watchlist'); return }
     try {
-      const existing = watchlist.find(s => s.symbol === symbol)
-      if (existing) { setSelected(existing); return }
-
       const data = await api.addSymbol(symbol, token)
       setWatchlist(prev => {
         const exists = prev.find(s => s.symbol === data.symbol)
@@ -64,17 +65,22 @@ export default function App() {
       setSelected(data)
     } catch (err) {
       if (err.message.includes('already in watchlist')) {
-        const existing = watchlist.find(s => s.symbol === symbol)
-        if (existing) setSelected(existing)
+        const found = watchlist.find(s => s.symbol === symbol)
+        if (found) setSelected(found)
       } else {
         setSearchError(err.message || `Symbol "${symbol}" not found`)
       }
     }
   }
 
+  const handleSearch = async (symbol) => {
+    setSearchError('')
+    await handleAddToWatchlist(symbol)
+    setActivePage('Watchlist')
+  }
+
   const handleRemove = async (symbol) => {
     const token = session?.access_token
-    // Optimistic remove
     const prev = watchlist
     setWatchlist(list => list.filter(s => s.symbol !== symbol))
     if (selected?.symbol === symbol) {
@@ -84,13 +90,12 @@ export default function App() {
     try {
       await api.removeSymbol(symbol, token)
     } catch {
-      setWatchlist(prev) // revert
+      setWatchlist(prev)
     }
   }
 
   const handleToggleStar = async (symbol) => {
     const token = session?.access_token
-    // Optimistic toggle
     const prev = watchlist
     setWatchlist(list =>
       list.map(s => s.symbol === symbol ? { ...s, starred: !s.starred } : s)
@@ -98,7 +103,7 @@ export default function App() {
     try {
       await api.toggleStar(symbol, token)
     } catch {
-      setWatchlist(prev) // revert
+      setWatchlist(prev)
     }
   }
 
@@ -118,14 +123,14 @@ export default function App() {
 
   if (!session) return <AuthPage />
 
-  // Sort: starred first, then by original order
   const sortedWatchlist = [
     ...watchlist.filter(s => s.starred),
     ...watchlist.filter(s => !s.starred),
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#0d1117' }}>
+      {/* Header */}
       <header style={{
         padding: '12px 24px',
         borderBottom: '1px solid #21262d',
@@ -138,11 +143,37 @@ export default function App() {
         <h1 style={{ color: '#58a6ff', fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
           Ghost Trade
         </h1>
-        <SearchBar onSearch={handleSearch} error={searchError} onClearError={() => setSearchError('')} />
+        {activePage === 'Watchlist' && (
+          <SearchBar onSearch={handleSearch} error={searchError} onClearError={() => setSearchError('')} />
+        )}
+        <div style={{ marginLeft: activePage === 'Watchlist' ? '0' : 'auto', display: 'flex', gap: '2px', backgroundColor: '#0d1117', borderRadius: '7px', padding: '3px', border: '1px solid #21262d', flexShrink: 0 }}>
+          {NAV_TABS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActivePage(tab)}
+              style={{
+                padding: '5px 14px',
+                borderRadius: '5px',
+                border: 'none',
+                backgroundColor: activePage === tab ? '#21262d' : 'transparent',
+                color: activePage === tab ? '#e6edf3' : '#8b949e',
+                fontSize: '13px',
+                fontWeight: activePage === tab ? 600 : 400,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { if (activePage !== tab) e.target.style.color = '#e6edf3' }}
+              onMouseLeave={e => { if (activePage !== tab) e.target.style.color = '#8b949e' }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
         <button
           onClick={handleLogout}
           style={{
-            marginLeft: 'auto',
+            marginLeft: activePage === 'Watchlist' ? 'auto' : '0',
             padding: '6px 14px',
             backgroundColor: 'transparent',
             border: '1px solid #30363d',
@@ -151,7 +182,6 @@ export default function App() {
             fontSize: '13px',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
-            transition: 'border-color 0.15s, color 0.15s',
           }}
           onMouseEnter={e => { e.target.style.borderColor = '#f85149'; e.target.style.color = '#f85149' }}
           onMouseLeave={e => { e.target.style.borderColor = '#30363d'; e.target.style.color = '#8b949e' }}
@@ -159,16 +189,32 @@ export default function App() {
           Log out
         </button>
       </header>
+
+      {/* Page content */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <WatchlistPanel
-          stocks={sortedWatchlist}
-          selected={selected}
-          onSelect={setSelected}
-          loading={watchlistLoading}
-          onRemove={handleRemove}
-          onToggleStar={handleToggleStar}
-        />
-        <StockChart stock={selected} />
+        {activePage === 'Watchlist' && (
+          <>
+            <WatchlistPanel
+              stocks={sortedWatchlist}
+              selected={selected}
+              onSelect={setSelected}
+              loading={watchlistLoading}
+              onRemove={handleRemove}
+              onToggleStar={handleToggleStar}
+            />
+            <StockChart stock={selected} />
+          </>
+        )}
+        {activePage === 'Discover' && (
+          <DiscoverPage
+            session={session}
+            watchlist={watchlist}
+            onAddToWatchlist={handleAddToWatchlist}
+          />
+        )}
+        {activePage === 'Portfolio' && (
+          <PortfolioPage session={session} />
+        )}
       </div>
     </div>
   )

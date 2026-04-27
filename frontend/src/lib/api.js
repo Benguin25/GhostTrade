@@ -11,9 +11,20 @@ async function request(path, options = {}, token = null) {
 }
 
 export const api = {
-  getWatchlist: (token) => request('/watchlist', {}, token),
-  addSymbol: (symbol, token) => request(`/watchlist/${symbol}`, { method: 'POST' }, token),
-  removeSymbol: (symbol, token) => request(`/watchlist/${symbol}`, { method: 'DELETE' }, token),
-  toggleStar: (symbol, token) => request(`/watchlist/${symbol}/star`, { method: 'PATCH' }, token),
-  getStock: (symbol, token) => request(`/stocks/${symbol}`, {}, token),
+  // Watchlist
+  getWatchlist:  (token)                => request('/watchlist', {}, token),
+  addSymbol:     (symbol, token)        => request(`/watchlist/${symbol}`, { method: 'POST' }, token),
+  removeSymbol:  (symbol, token)        => request(`/watchlist/${symbol}`, { method: 'DELETE' }, token),
+  toggleStar:    (symbol, token)        => request(`/watchlist/${symbol}/star`, { method: 'PATCH' }, token),
+
+  // Stocks
+  getStock:      (symbol)               => request(`/stocks/${symbol}`),
+  getDiscover:   ()                     => request('/stocks/discover'),
+
+  // Portfolio
+  getPortfolio:     (token)             => request('/portfolio', {}, token),
+  getPortfolioHistory: (token)          => request('/portfolio/history', {}, token),
+  buyStock:      (symbol, shares, token) => request('/portfolio/buy',  { method: 'POST', body: JSON.stringify({ symbol, shares }) }, token),
+  sellStock:     (symbol, shares, token) => request('/portfolio/sell', { method: 'POST', body: JSON.stringify({ symbol, shares }) }, token),
+  resetPortfolio: (token)               => request('/portfolio/reset', { method: 'POST' }, token),
 }
