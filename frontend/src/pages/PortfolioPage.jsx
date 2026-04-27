@@ -59,6 +59,16 @@ export default function PortfolioPage({ session }) {
 
   useEffect(() => { loadPortfolio() }, [loadPortfolio])
 
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        const p = await api.getPortfolio(token)
+        setPortfolio(p)
+      } catch { /* silent */ }
+    }, 5000)
+    return () => clearInterval(id)
+  }, [token])
+
   const handleTrade = async (action, shares) => {
     if (!tradeModal) return
     setTradeLoading(true)
