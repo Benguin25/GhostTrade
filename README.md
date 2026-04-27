@@ -1,44 +1,25 @@
 # Ghost Trade
 
-A stock analysis dashboard. Phase 0 — display stock data, no trading logic.
+A paper-trading web app where you can track stocks, explore the market, and practice buying and selling with a simulated $100,000 portfolio.
 
-**Stack:** React + Vite (frontend) · FastAPI + yfinance (backend) · Supabase/Postgres (future)
+## Features
 
-## Setup
+- **Watchlist** — search any ticker and build a personal list with star/remove controls
+- **Discover** — browse popular stocks across sectors (Tech, Finance, Healthcare, Consumer, Energy, Canadian) with live prices
+- **Portfolio** — start with $100k, buy and sell stocks at live prices, track P&L, and reset at any time
+- **Charts** — 30-day price history for any stock
+- **Auth** — email/password accounts backed by Supabase, session persisted in browser
 
-### Backend
+## Stack
 
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env             # fill in Supabase values when ready
-uvicorn main:app --reload
-```
+| Layer | Tech |
+|---|---|
+| Frontend | React 18 + Vite |
+| Backend | FastAPI (Python) + yfinance |
+| Database | Supabase (PostgreSQL) |
+| Charts | Recharts |
 
-Runs at `http://localhost:8000`
+## Docs
 
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Runs at `http://localhost:5173`
-
-## Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/stocks/watchlist` | Returns data for the default watchlist |
-| GET | `/stocks/{symbol}` | Returns price, % change, and 30-day history for a symbol |
-
-## Watchlist
-
-Default symbols: `SHOP.TO`, `RY.TO`, `AAPL`, `TSLA`
-
-Use the search bar to look up any symbol and add it to the watchlist for the session.
-Canadian symbols use the `.TO` suffix (e.g. `SHOP.TO`).
+- [SETUP.md](SETUP.md) — how to run the project locally
+- [CODEBASE.md](CODEBASE.md) — technical overview of the architecture and code
