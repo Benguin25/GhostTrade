@@ -69,3 +69,5 @@ def clear_portfolio(user_id: str):
     supabase.table("holdings").delete().eq("user_id", user_id).execute()
     supabase.table("trades").delete().eq("user_id", user_id).execute()
     supabase.table("portfolio").update({"balance": 100000.00}).eq("user_id", user_id).execute()
+
+

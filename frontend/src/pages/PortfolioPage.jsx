@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../lib/api'
 import TradeModal from '../components/TradeModal'
+import PortfolioChart from '../components/PortfolioChart'
 
 const C = {
   bg: '#0d1117',
@@ -161,6 +162,8 @@ export default function PortfolioPage({ session }) {
           color={pnl >= 0 ? C.green : C.red}
         />
       </div>
+
+      <PortfolioChart token={token} />
 
       {/* Holdings */}
       <div style={{ backgroundColor: C.surface, border: `1px solid ${C.border}`, borderRadius: '8px', marginBottom: '28px', overflow: 'hidden' }}>
