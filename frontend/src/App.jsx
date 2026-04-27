@@ -17,7 +17,7 @@ export default function App() {
   const [selected, setSelected] = useState(null)
   const [watchlistLoading, setWatchlistLoading] = useState(false)
   const [searchError, setSearchError] = useState('')
-  const [activePage, setActivePage] = useState('Watchlist')
+  const [activePage, setActivePage] = useState('Portfolio')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
