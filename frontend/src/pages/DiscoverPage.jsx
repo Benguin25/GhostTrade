@@ -78,6 +78,7 @@ export default function DiscoverPage({ session, watchlist, onAddToWatchlist }) {
   const [selectedFull, setSelectedFull] = useState(null)
   const [chartLoading, setChartLoading] = useState(false)
   const [adding, setAdding] = useState(new Set())
+  const [addError, setAddError] = useState('')
 
   const watchlistSymbols = new Set(watchlist.map(s => s.symbol))
 
@@ -106,8 +107,11 @@ export default function DiscoverPage({ session, watchlist, onAddToWatchlist }) {
 
   const handleAdd = async (symbol) => {
     setAdding(prev => new Set(prev).add(symbol))
+    setAddError('')
     try {
       await onAddToWatchlist(symbol)
+    } catch (err) {
+      setAddError(err.message || `Failed to add ${symbol}`)
     } finally {
       setAdding(prev => { const next = new Set(prev); next.delete(symbol); return next })
     }
@@ -121,6 +125,11 @@ export default function DiscoverPage({ session, watchlist, onAddToWatchlist }) {
           <span style={{ fontSize: '11px', fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Discover Stocks
           </span>
+          {addError && (
+            <div style={{ marginTop: '8px', fontSize: '12px', color: C.red }}>
+              {addError}
+            </div>
+          )}
         </div>
 
         {loading ? (

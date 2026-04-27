@@ -69,6 +69,7 @@ export default function App() {
         if (found) setSelected(found)
       } else {
         setSearchError(err.message || `Symbol "${symbol}" not found`)
+        throw err
       }
     }
   }
