@@ -1,25 +1,22 @@
-# Ghost Trade
+# GhostTrade
 
-A paper-trading web app where you can track stocks, explore the market, and practice buying and selling with a simulated $100,000 portfolio.
+This repository is being restructured. It now holds two projects:
 
-## Features
+## `bot/` — Alpaca trading bot (work in progress)
 
-- **Watchlist** — search any ticker and build a personal list with star/remove controls
-- **Discover** — browse popular stocks across sectors (Tech, Finance, Healthcare, Consumer, Energy, Canadian) with live prices
-- **Portfolio** — start with $100k, buy and sell stocks at live prices, track P&L, and reset at any time
-- **Charts** — 30-day price history for any stock
-- **Auth** — email/password accounts backed by Supabase, session persisted in browser
+The active project: an [Alpaca](https://alpaca.markets)-based trading bot.
+It currently contains a hello-world script that connects to a paper account
+and prints its balances. Strategy logic is not built yet.
 
-## Stack
+See [bot/README.md](bot/README.md) for setup and how to run it.
 
-| Layer | Tech |
-|---|---|
-| Frontend | React 18 + Vite |
-| Backend | FastAPI (Python) + yfinance |
-| Database | Supabase (PostgreSQL) |
-| Charts | Recharts |
+## `legacy/` — paper-trading web app (archived)
 
-## Docs
+The original GhostTrade: a paper-trading web app where you track stocks,
+explore the market, and practice buying and selling with a simulated
+$100,000 portfolio. Built with a React + Vite frontend, a FastAPI backend,
+and Supabase for auth and storage.
 
-- [SETUP.md](SETUP.md) — how to run the project locally
-- [CODEBASE.md](CODEBASE.md) — technical overview of the architecture and code
+This app is archived and no longer actively developed, but it still runs
+from inside `legacy/`. See [legacy/SETUP.md](legacy/SETUP.md) to run it and
+[legacy/CODEBASE.md](legacy/CODEBASE.md) for an architecture overview.
