@@ -1,25 +1,52 @@
-# Ghost Trade
+# GhostTrade
 
-A paper-trading web app where you can track stocks, explore the market, and practice buying and selling with a simulated $100,000 portfolio.
+An [Alpaca](https://alpaca.markets)-based trading bot (work in progress).
 
-## Features
+Right now this contains a hello-world script that connects to your Alpaca
+**paper** account and prints its balances. Strategy logic is not built yet.
 
-- **Watchlist** — search any ticker and build a personal list with star/remove controls
-- **Discover** — browse popular stocks across sectors (Tech, Finance, Healthcare, Consumer, Energy, Canadian) with live prices
-- **Portfolio** — start with $100k, buy and sell stocks at live prices, track P&L, and reset at any time
-- **Charts** — 30-day price history for any stock
-- **Auth** — email/password accounts backed by Supabase, session persisted in browser
+## Prerequisites
 
-## Stack
+- Python 3.11+
+- An Alpaca account with paper-trading API keys
 
-| Layer | Tech |
-|---|---|
-| Frontend | React 18 + Vite |
-| Backend | FastAPI (Python) + yfinance |
-| Database | Supabase (PostgreSQL) |
-| Charts | Recharts |
+## Setup
 
-## Docs
+```bash
+# 1. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
-- [SETUP.md](SETUP.md) — how to run the project locally
-- [CODEBASE.md](CODEBASE.md) — technical overview of the architecture and code
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Add your credentials
+cp .env.example .env
+```
+
+Edit `.env` and fill in your paper-trading keys (from the Alpaca dashboard):
+
+```
+APCA_API_KEY_ID=your-key-id
+APCA_API_SECRET_KEY=your-secret-key
+```
+
+## Run
+
+```bash
+python hello.py
+```
+
+You should see your paper account's cash and portfolio value printed:
+
+```
+Cash:            $100000
+Portfolio value: $100000
+```
+
+## `legacy - OLD/`
+
+The original GhostTrade — a paper-trading web app (React + Vite frontend,
+FastAPI backend, Supabase) — is archived under [`legacy - OLD/`](<legacy - OLD/>). It is
+no longer actively developed but still runs from inside that folder. See
+[legacy - OLD/SETUP.md](<legacy - OLD/SETUP.md>) and [legacy - OLD/CODEBASE.md](<legacy - OLD/CODEBASE.md>).

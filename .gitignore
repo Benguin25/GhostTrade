@@ -34,6 +34,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Alpaca trading bot
+/.env
+/venv/
+!/.env.example
+
 # vercel
 .vercel
 
