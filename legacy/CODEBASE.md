@@ -3,7 +3,7 @@
 ## Directory structure
 
 ```
-GhostTrade/
+legacy/
 ├── backend/                   FastAPI server
 │   ├── main.py                App entry point, CORS, router registration
 │   ├── requirements.txt
