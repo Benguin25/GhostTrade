@@ -44,9 +44,9 @@ Cash:            $100000
 Portfolio value: $100000
 ```
 
-## `legacy/`
+## `legacy - OLD/`
 
 The original GhostTrade — a paper-trading web app (React + Vite frontend,
-FastAPI backend, Supabase) — is archived under [`legacy/`](legacy/). It is
+FastAPI backend, Supabase) — is archived under [`legacy - OLD/`](<legacy - OLD/>). It is
 no longer actively developed but still runs from inside that folder. See
-[legacy/SETUP.md](legacy/SETUP.md) and [legacy/CODEBASE.md](legacy/CODEBASE.md).
+[legacy - OLD/SETUP.md](<legacy - OLD/SETUP.md>) and [legacy - OLD/CODEBASE.md](<legacy - OLD/CODEBASE.md>).
