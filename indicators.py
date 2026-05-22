@@ -36,6 +36,18 @@ def fetch_daily_bars(data_client: StockHistoricalDataClient, symbol: str) -> pd.
 
 
 def evaluate(bars: pd.DataFrame) -> dict:
+    """Trend-following strategy with an RSI overbought/oversold filter.
+
+    BUY:  EMA(9) > EMA(21) AND RSI(14) < 70
+          (uptrend, not yet overbought)
+    SELL: EMA(9) < EMA(21) AND RSI(14) > 30
+          (downtrend, not yet oversold)
+    HOLD: everything else (e.g. trend and momentum disagree, or RSI is
+          in extreme territory that vetoes entering the prevailing trend)
+
+    Returns a dict with the latest close, the three indicator values, the
+    decision string, and the number of bars analyzed.
+    """
     close = bars["close"]
     rsi = ta.rsi(close, length=RSI_PERIOD).iloc[-1]
     ema_fast = ta.ema(close, length=EMA_FAST).iloc[-1]

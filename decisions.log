@@ -1,1 +1,6 @@
 2026-05-21 22:48:19,751 Market is closed (next open: 2026-05-22 09:30:00-04:00). Exiting without trading.
+2026-05-22 15:48:58,575 AAPL | close=$308.39 rsi=78.25 ema_fast=300.10 ema_slow=290.66 | flat | decision=HOLD | no action
+2026-05-22 15:48:58,695 TSLA | close=$424.90 rsi=57.92 ema_fast=419.16 ema_slow=410.38 | flat | decision=BUY | submitted BUY $1000 notional
+2026-05-22 15:48:58,821 NVDA | close=$215.41 rsi=53.77 ema_fast=219.69 ema_slow=214.13 | flat | decision=BUY | submitted BUY $1000 notional
+2026-05-22 15:48:58,957 MSFT | close=$418.71 rsi=54.49 ema_fast=417.68 ema_slow=414.64 | flat | decision=BUY | submitted BUY $1000 notional
+2026-05-22 15:48:59,095 SPY | close=$745.31 rsi=68.74 ema_fast=739.64 ema_slow=729.45 | flat | decision=BUY | submitted BUY $1000 notional
