@@ -20,7 +20,7 @@ if not api_key or not secret_key:
         "APCA_API_KEY_ID and APCA_API_SECRET_KEY."
     )
 
-SYMBOL = "AAPL"
+SYMBOL = "TSLA"
 LOOKBACK_DAYS = 100
 RSI_PERIOD = 14
 EMA_FAST = 9
